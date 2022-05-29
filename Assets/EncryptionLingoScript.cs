@@ -30,11 +30,32 @@ public class EncryptionLingoScript : MonoBehaviour
     public Texture[] BoozleglyphTextures2;
     public Texture[] BoozleglyphTextures3;
     public Texture[] PigpenTextures;
-    public Texture[] SignLanguageTextures;
+    public Texture[] AmericanSignLanguageTextures;
     public Texture[] SemaphoreTextures;
     public Texture[] ZoniTextures;
     public Texture[] LombaxTextures;
     public Texture[] SGATextures;
+    public Texture[] DCodeTextures;
+    public Texture[] BinaryTextures;
+    public Texture[] RlyehianTextures;
+    public Texture[] DancingMenTextures;
+
+    private enum EncryptionMethods
+    {
+        Maritime,
+        Braille,
+        Boozleglyph,
+        Pigpen,
+        AmericanSignLanguage,
+        Semaphore,
+        Zoni,
+        Lombax,
+        SGA,
+        DCode,
+        Binary,
+        Rlyehian,
+        DancingMen
+    }
 
     private int _moduleId;
     private static int _moduleIdCounter = 1;
@@ -46,25 +67,13 @@ public class EncryptionLingoScript : MonoBehaviour
     private List<int> _pastBoozleSets = new List<int>();
     private string _correctWord;
     private Coroutine _animation;
-    private enum EncryptionMethods
-    {
-        Maritime,
-        Braille,
-        Boozleglyph,
-        Pigpen,
-        SignLanguage,
-        Semaphore,
-        Zoni,
-        Lombax,
-        SGA
-    };
     private enum QueryState
     {
         None,
         Correct,
         Close
     }
-    private EncryptionMethods?[] _encChecker = new EncryptionMethods?[2];
+    private EncryptionMethods?[] _encChecker = new EncryptionMethods?[3];
     private int _currentPage;
     private bool _isQueryAnimating;
     private bool _startup = true;
@@ -327,11 +336,11 @@ public class EncryptionLingoScript : MonoBehaviour
                     img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
                 continue;
             }
-            if (enc == EncryptionMethods.SignLanguage)
+            if (enc == EncryptionMethods.AmericanSignLanguage)
             {
-                QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = SignLanguageTextures[c];
+                QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = AmericanSignLanguageTextures[c];
                 foreach (var img in QueryImages)
-                    img.transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
+                    img.transform.localScale = new Vector3(0.19f, 0.19f, 0.1f);
                 continue;
             }
             if (enc == EncryptionMethods.Semaphore)
@@ -360,6 +369,34 @@ public class EncryptionLingoScript : MonoBehaviour
                 QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = SGATextures[c];
                 foreach (var img in QueryImages)
                     img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
+                continue;
+            }
+            if (enc == EncryptionMethods.DCode)
+            {
+                QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = DCodeTextures[c];
+                foreach (var img in QueryImages)
+                    img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
+                continue;
+            }
+            if (enc == EncryptionMethods.Binary)
+            {
+                QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = BinaryTextures[c];
+                foreach (var img in QueryImages)
+                    img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
+                continue;
+            }
+            if (enc == EncryptionMethods.Rlyehian)
+            {
+                QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = RlyehianTextures[c];
+                foreach (var img in QueryImages)
+                    img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
+                continue;
+            }
+            if (enc == EncryptionMethods.DancingMen)
+            {
+                QueryImages[i].GetComponent<MeshRenderer>().material.mainTexture = DancingMenTextures[c];
+                foreach (var img in QueryImages)
+                    img.transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
                 continue;
             }
         }
@@ -392,6 +429,7 @@ public class EncryptionLingoScript : MonoBehaviour
         _currentEncryption = (EncryptionMethods)Rnd.Range(0, Enum.GetValues(typeof(EncryptionMethods)).Length);
         if (_encChecker.Contains(_currentEncryption))
             goto pickEnc;
+        _encChecker[2] = _encChecker[1];
         _encChecker[1] = _encChecker[0];
         _encChecker[0] = _currentEncryption;
         if (_currentEncryption == EncryptionMethods.Maritime)
@@ -419,11 +457,11 @@ public class EncryptionLingoScript : MonoBehaviour
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
         }
-        else if (_currentEncryption == EncryptionMethods.SignLanguage)
+        else if (_currentEncryption == EncryptionMethods.AmericanSignLanguage)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Sign Language", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: American Sign Language", _moduleId);
             foreach (var img in QueryImages)
-                img.transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
+                img.transform.localScale = new Vector3(0.19f, 0.19f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Semaphore)
         {
@@ -445,9 +483,33 @@ public class EncryptionLingoScript : MonoBehaviour
         }
         else if (_currentEncryption == EncryptionMethods.SGA)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: SGA", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Standard Galactic Alphabet", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
+        }
+        else if (_currentEncryption == EncryptionMethods.DCode)
+        {
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: D-CODE", _moduleId);
+            foreach (var img in QueryImages)
+                img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
+        }
+        else if (_currentEncryption == EncryptionMethods.Binary)
+        {
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Binary", _moduleId);
+            foreach (var img in QueryImages)
+                img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
+        }
+        else if (_currentEncryption == EncryptionMethods.Rlyehian)
+        {
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: R'lyehian", _moduleId);
+            foreach (var img in QueryImages)
+                img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
+        }
+        else if (_currentEncryption == EncryptionMethods.DancingMen)
+        {
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Dancing Men", _moduleId);
+            foreach (var img in QueryImages)
+                img.transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
         }
     }
 
@@ -505,10 +567,10 @@ public class EncryptionLingoScript : MonoBehaviour
                 ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = PigpenTextures[_letterOrder[i]];
                 continue;
             }
-            if (_currentEncryption == EncryptionMethods.SignLanguage)
+            if (_currentEncryption == EncryptionMethods.AmericanSignLanguage)
             {
-                ButtonImages[i % 9].transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
-                ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = SignLanguageTextures[_letterOrder[i]];
+                ButtonImages[i % 9].transform.localScale = new Vector3(0.19f, 0.19f, 0.1f);
+                ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = AmericanSignLanguageTextures[_letterOrder[i]];
                 continue;
             }
             if (_currentEncryption == EncryptionMethods.Semaphore)
@@ -533,6 +595,30 @@ public class EncryptionLingoScript : MonoBehaviour
             {
                 ButtonImages[i % 9].transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
                 ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = SGATextures[_letterOrder[i]];
+                continue;
+            }
+            if (_currentEncryption == EncryptionMethods.DCode)
+            {
+                ButtonImages[i % 9].transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
+                ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = DCodeTextures[_letterOrder[i]];
+                continue;
+            }
+            if (_currentEncryption == EncryptionMethods.Binary)
+            {
+                ButtonImages[i % 9].transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
+                ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = BinaryTextures[_letterOrder[i]];
+                continue;
+            }
+            if (_currentEncryption == EncryptionMethods.Rlyehian)
+            {
+                ButtonImages[i % 9].transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
+                ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = RlyehianTextures[_letterOrder[i]];
+                continue;
+            }
+            if (_currentEncryption == EncryptionMethods.DancingMen)
+            {
+                ButtonImages[i % 9].transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
+                ButtonImages[i % 9].GetComponent<MeshRenderer>().material.mainTexture = DancingMenTextures[_letterOrder[i]];
                 continue;
             }
         }
