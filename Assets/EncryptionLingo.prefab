@@ -5464,7 +5464,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: f67a6b50242385d448c621bc34042064, type: 3}
   - {fileID: 2800000, guid: d56a83c55d3bfa14ca52382cbb9e9c1f, type: 3}
   - {fileID: 2800000, guid: 6bb5e231f9a91e84f8c5e93f3002a76f, type: 3}
-  - {fileID: 0}
+  - {fileID: 2800000, guid: ad94879cc4dda46419047376d1dc6e60, type: 3}
   - {fileID: 2800000, guid: 9b177475c7d2a204fa53e885bc0b9bf1, type: 3}
   - {fileID: 2800000, guid: 6ceb3d0723bc742439fa4d483b1eb29b, type: 3}
   - {fileID: 2800000, guid: 1cd2f4286a8070b45ac09d78611bed1b, type: 3}
@@ -5510,7 +5510,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 4ebfab6f37be87742b594772edd9e365, type: 3}
   - {fileID: 2800000, guid: 2ba8b85e4011db74781e2185070851e1, type: 3}
   - {fileID: 2800000, guid: 9558c67a4f5452d46850e5f49f429971, type: 3}
-  - {fileID: 0}
+  - {fileID: 2800000, guid: c6a3a27a005eff843b487ae3d58c3811, type: 3}
   - {fileID: 2800000, guid: 60d7b1a09c37dbd47ae2f50e0fb4b9a7, type: 3}
   - {fileID: 2800000, guid: 13f98b251549a934a85ace99e03c5535, type: 3}
   BoozleglyphTextures3:
