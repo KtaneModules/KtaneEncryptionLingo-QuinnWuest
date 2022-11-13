@@ -81,10 +81,15 @@ public class EncryptionLingoScript : MonoBehaviour
     private int[] _letterOrder = new int[26];
     private int _boozleSet;
     private string _currentInput = "";
+    private bool TwitchPlaysActive;
+    private bool _tpActive;
+    private bool _readyToSolve;
+    private bool _waitForSolve;
 
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
+        Module.OnActivate += Activate;
         for (int i = 0; i < SqButtonSels.Length; i++)
             SqButtonSels[i].OnInteract += SqButtonPress(i);
         for (int i = 0; i < LetterArrowSels.Length; i++)
@@ -106,6 +111,12 @@ public class EncryptionLingoScript : MonoBehaviour
             img.SetActive(false);
         foreach (var img in ButtonImages)
             img.SetActive(false);
+        StartCoroutine(SolveAnimation());
+    }
+
+    private void Activate()
+    {
+        _tpActive = TwitchPlaysActive;
     }
 
     private bool QueryPress()
@@ -162,20 +173,11 @@ public class EncryptionLingoScript : MonoBehaviour
         }
         if (corCount == 5)
         {
-            _moduleSolved = true;
-            Audio.PlaySoundAtTransform("Solve", transform);
+            _isQueryAnimating = false;
             Debug.LogFormat("[Encryption Lingo #{0}] You guessed the correct word, {1}. Module solved!", _moduleId, _correctWord);
-            for (int i = 0; i < 5; i++)
-            {
-                QueryImages[i].SetActive(false);
-                yield return new WaitForSeconds(0.025f);
-            }
-            for (int i = 0; i < 5; i++)
-            {
-                ScreenTextObjs[i].SetActive(true);
-                yield return new WaitForSeconds(0.025f);
-            }
-            Module.HandlePass();
+            _readyToSolve = true;
+            if (!_tpActive)
+                _waitForSolve = true;
             yield break;
         }
         yield return new WaitForSeconds(1.5f);
@@ -187,6 +189,26 @@ public class EncryptionLingoScript : MonoBehaviour
         SetEncryptions();
         _animation = StartCoroutine(SetButtons());
         _isQueryAnimating = false;
+        yield break;
+    }
+
+    private IEnumerator SolveAnimation()
+    {
+        while (!_waitForSolve)
+            yield return new WaitForSeconds(0.1f);
+        _moduleSolved = true;
+        Audio.PlaySoundAtTransform("Solve", transform);
+        for (int i = 0; i < 5; i++)
+        {
+            QueryImages[i].SetActive(false);
+            yield return new WaitForSeconds(0.025f);
+        }
+        for (int i = 0; i < 5; i++)
+        {
+            ScreenTextObjs[i].SetActive(true);
+            yield return new WaitForSeconds(0.025f);
+        }
+        Module.HandlePass();
         yield break;
     }
 
@@ -274,7 +296,6 @@ public class EncryptionLingoScript : MonoBehaviour
             _currentInput += "ABCDEFGHIJKLMNOPQRSTUVWXYZ".Substring(_letterOrder[btn + _currentPage * 9], 1);
             SetScreen(_currentInput, _currentEncryption, false);
         }
-        // Debug.LogFormat("[Encryption Lingo #{0}] Current input: {1}", _moduleId, _currentInput);
     }
 
     private void SetScreen(string input, EncryptionMethods enc, bool isPast, QueryState[] qry = null)
@@ -631,7 +652,7 @@ public class EncryptionLingoScript : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private string TwitchHelpMessage = "!{0} A1 B2 C3 [Press buttons in A1/B2/C3] | !{0} query [Query the current word] | !{0} up/down [Scroll through the pages] | !{0} left/right [Scroll through previous queries]";
+    private string TwitchHelpMessage = "!{0} A1 B2 C3 [Press buttons in A1/B2/C3] | !{0} query [Query the current word] | !{0} up/down [Scroll through the pages] | !{0} left/right [Scroll through previous queries] | !{0} done [Solve the module upon finding the word]";
 #pragma warning restore 414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -640,6 +661,24 @@ public class EncryptionLingoScript : MonoBehaviour
         var commandPieces = command.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
         var buttonsToPress = new List<KMSelectable>();
         Match m;
+        m = Regex.Match(command, @"^\s*done\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (m.Success)
+        {
+            if (!_readyToSolve)
+            {
+                yield return "sendtochaterror You cannot use 'done' if you have not found the word!";
+                yield break;
+            }
+            yield return "solve";
+            _waitForSolve = true;
+            yield break;
+        }
+
+        if (_readyToSolve)
+        {
+            yield return "sendtochaterror The module is ready to be solved! Use 'done' to solve the module.";
+            yield break;
+        }
 
         foreach (var piece in commandPieces)
         {
@@ -659,7 +698,6 @@ public class EncryptionLingoScript : MonoBehaviour
                 yield break;
         }
         yield return null;
-
         foreach (var btn in buttonsToPress)
         {
             btn.OnInteract();
@@ -697,7 +735,7 @@ public class EncryptionLingoScript : MonoBehaviour
             var correctPage = correctLetterIx / 9;
             if (correctPage != _currentPage)
             {
-                LetterArrowSels[((_currentPage - correctPage + 3) % 3) % 2].OnInteract();       // don’t ask
+                LetterArrowSels[(_currentPage - correctPage + 3) % 3 % 2].OnInteract();       // don’t ask
                 while (_animation != null)
                     yield return true;
             }
@@ -705,7 +743,10 @@ public class EncryptionLingoScript : MonoBehaviour
             yield return new WaitForSeconds(.1f);
         }
         QuerySel.OnInteract();
-        while (!_moduleSolved || _isQueryAnimating)
+        while (_isQueryAnimating)
+            yield return true;
+        _waitForSolve = true;
+        while (!_moduleSolved)
             yield return true;
     }
 }
