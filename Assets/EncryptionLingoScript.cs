@@ -81,10 +81,12 @@ public class EncryptionLingoScript : MonoBehaviour
     private int[] _letterOrder = new int[26];
     private int _boozleSet;
     private string _currentInput = "";
-    private bool TwitchPlaysActive;
     private bool _tpActive;
     private bool _readyToSolve;
     private bool _waitForSolve;
+#pragma warning disable 0649
+    private bool TwitchPlaysActive;
+#pragma warning restore 0649
 
     private void Start()
     {
