@@ -57,28 +57,29 @@ public class EncryptionLingoScript : MonoBehaviour
         DancingMen
     }
 
-    private int _moduleId;
-    private static int _moduleIdCounter = 1;
-    private bool _moduleSolved;
-    private int _queryIx = 0;
-    private List<string> _pastQueries = new List<string>();
-    private List<EncryptionMethods> _pastEncryptions = new List<EncryptionMethods>();
-    private List<QueryState[]> _pastQueryStates = new List<QueryState[]>();
-    private List<int> _pastBoozleSets = new List<int>();
-    private string _correctWord;
-    private Coroutine _animation;
     private enum QueryState
     {
         None,
         Correct,
         Close
     }
-    private EncryptionMethods?[] _encChecker = new EncryptionMethods?[3];
+
+    private int _moduleId;
+    private static int _moduleIdCounter = 1;
+    private bool _moduleSolved;
+    private int _queryIx = 0;
+    private readonly List<string> _pastQueries = new List<string>();
+    private readonly List<EncryptionMethods> _pastEncryptions = new List<EncryptionMethods>();
+    private readonly List<QueryState[]> _pastQueryStates = new List<QueryState[]>();
+    private readonly List<int> _pastBoozleSets = new List<int>();
+    private string _correctWord;
+    private Coroutine _animation;
+    private readonly EncryptionMethods?[] _encChecker = new EncryptionMethods?[3];
     private int _currentPage;
     private bool _isQueryAnimating;
     private bool _startup = true;
     private EncryptionMethods _currentEncryption;
-    private int[] _letterOrder = new int[26];
+    private int[] _letterOrder;
     private int _boozleSet;
     private string _currentInput = "";
     private bool _tpActive;
@@ -87,6 +88,7 @@ public class EncryptionLingoScript : MonoBehaviour
 #pragma warning disable 0649
     private bool TwitchPlaysActive;
 #pragma warning restore 0649
+    private IDictionary<string, object> tpAPI;
 
     private void Start()
     {
@@ -118,7 +120,15 @@ public class EncryptionLingoScript : MonoBehaviour
 
     private void Activate()
     {
-        _tpActive = TwitchPlaysActive;
+        if (TwitchPlaysActive)
+        {
+            _tpActive = true;
+            var tpAPIGameObject = GameObject.Find("TwitchPlays_Info");
+            if (tpAPIGameObject != null)
+                tpAPI = tpAPIGameObject.GetComponent<IDictionary<string, object>>();
+            else
+                _tpActive = false;
+        }
     }
 
     private bool QueryPress()
@@ -180,6 +190,8 @@ public class EncryptionLingoScript : MonoBehaviour
             _readyToSolve = true;
             if (!_tpActive)
                 _waitForSolve = true;
+            else
+                tpAPI["ircConnectionSendMessage"] = "Module " + GetModuleCode() + " (Encryption Lingo) is ready to be solved! Use ‘done’ to solve the module.";
             yield break;
         }
         yield return new WaitForSeconds(1.5f);
@@ -197,7 +209,7 @@ public class EncryptionLingoScript : MonoBehaviour
     private IEnumerator SolveAnimation()
     {
         while (!_waitForSolve)
-            yield return new WaitForSeconds(0.1f);
+            yield return null;
         _moduleSolved = true;
         Audio.PlaySoundAtTransform("Solve", transform);
         for (int i = 0; i < 5; i++)
@@ -448,89 +460,86 @@ public class EncryptionLingoScript : MonoBehaviour
     private void SetEncryptions()
     {
         _letterOrder = Enumerable.Range(0, 26).ToArray().Shuffle();
-        pickEnc:
-        _currentEncryption = (EncryptionMethods)Rnd.Range(0, Enum.GetValues(typeof(EncryptionMethods)).Length);
-        if (_encChecker.Contains(_currentEncryption))
-            goto pickEnc;
+        _currentEncryption = Enumerable.Range(0, Enum.GetValues(typeof(EncryptionMethods)).Length).Select(i => (EncryptionMethods)i).Where(i => _encChecker.Contains(i)).PickRandom();
         _encChecker[2] = _encChecker[1];
         _encChecker[1] = _encChecker[0];
         _encChecker[0] = _currentEncryption;
         if (_currentEncryption == EncryptionMethods.Maritime)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Maritime Flags", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Maritime.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Braille)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Braille", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Braille.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.085f, 0.125f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Boozleglyph)
         {
             _boozleSet = Rnd.Range(0, 3);
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Boozleglyph Set {1}", _moduleId, _boozleSet + 1);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Boozleglyph, Set {1}.", _moduleId, _boozleSet + 1);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Pigpen)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Pigpen", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Pigpen.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.AmericanSignLanguage)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: American Sign Language", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: American Sign Language.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.19f, 0.19f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Semaphore)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Semaphore", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Semaphore.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.15f, 0.12f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Zoni)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Zoni", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Zoni.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Lombax)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Lombax", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Lombax.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.SGA)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Standard Galactic Alphabet", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Standard Galactic Alphabet.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.DCode)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: D-CODE", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: D-CODE.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Binary)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Binary", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Binary.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.125f, 0.125f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.Rlyehian)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: R'lyehian", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: R'lyehian.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.15f, 0.15f, 0.1f);
         }
         else if (_currentEncryption == EncryptionMethods.DancingMen)
         {
-            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Dancing Men", _moduleId);
+            Debug.LogFormat("[Encryption Lingo #{0}] Chosen encryption method: Dancing Men.", _moduleId);
             foreach (var img in QueryImages)
                 img.transform.localScale = new Vector3(0.175f, 0.175f, 0.1f);
         }
@@ -678,7 +687,7 @@ public class EncryptionLingoScript : MonoBehaviour
 
         if (_readyToSolve)
         {
-            yield return "sendtochaterror The module is ready to be solved! Use 'done' to solve the module.";
+            yield return "sendtochaterror The module is ready to be solved! Use ‘done’ to solve the module.";
             yield break;
         }
 
@@ -707,6 +716,22 @@ public class EncryptionLingoScript : MonoBehaviour
             while (_isQueryAnimating)
                 yield return null;
         }
+    }
+
+    private string GetModuleCode()
+    {
+        Transform closest = null;
+        float closestDistance = float.MaxValue;
+        foreach (Transform children in transform.parent)
+        {
+            var distance = (transform.position - children.position).magnitude;
+            if (children.gameObject.name == "TwitchModule(Clone)" && (closest == null || distance < closestDistance))
+            {
+                closest = children;
+                closestDistance = distance;
+            }
+        }
+        return closest != null ? closest.Find("MultiDeckerUI").Find("IDText").GetComponent<UnityEngine.UI.Text>().text : null;
     }
 
     private IEnumerator TwitchHandleForcedSolve()
