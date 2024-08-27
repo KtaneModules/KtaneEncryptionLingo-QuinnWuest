@@ -460,7 +460,7 @@ public class EncryptionLingoScript : MonoBehaviour
     private void SetEncryptions()
     {
         _letterOrder = Enumerable.Range(0, 26).ToArray().Shuffle();
-        _currentEncryption = Enumerable.Range(0, Enum.GetValues(typeof(EncryptionMethods)).Length).Select(i => (EncryptionMethods)i).Where(i => _encChecker.Contains(i)).PickRandom();
+        _currentEncryption = Enumerable.Range(0, Enum.GetValues(typeof(EncryptionMethods)).Length).Select(i => (EncryptionMethods)i).Where(i => !_encChecker.Contains(i)).PickRandom();
         _encChecker[2] = _encChecker[1];
         _encChecker[1] = _encChecker[0];
         _encChecker[0] = _currentEncryption;
